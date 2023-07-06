@@ -1,29 +1,31 @@
-# README #
+# Gauss Tag S2S Template
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This template aims to replace/replicate the Gauss Tag which normally is embedded on the webpage.
 
-### What is this repository for? ###
+## Template Setup
+For the full step by step instructions on setting up the server-side tagging please follow the [Google's official guide](https://developers.google.com/tag-platform/learn/sst-fundamentals).
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+## Demo Website Setup
 
-### How do I get set up? ###
+1. Create the virtual environment
+    ```bash
+    virtualenv .venv
+    ```
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+1. Install dependencies
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### Contribution guidelines ###
+1. Fill in the environment variables
+    The environment variables can be created in the shell
+    ```bash
+    export GTM_WEB_CONTAINER_ID=GTM-XXXXXX
+    ```
+    or listed in an `.env` file.
+    The mandatory variables are: `GTM_WEB_CONTAINER_ID` and `SECRET_KEY`. The first one is the id of the GTM web container configured in the part above, the second is a random string used by [Flask](https://explore-flask.readthedocs.io/en/latest/configuration.html).
 
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+1. Run the server
+    ```bash
+    python main.py
+    ```
