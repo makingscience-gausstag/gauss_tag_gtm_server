@@ -31,6 +31,13 @@ ___TEMPLATE_PARAMETERS___
 [
   {
     "type": "TEXT",
+    "name": "apiKey",
+    "displayName": "API Key",
+    "simpleValueType": true,
+    "help": "If set will send the API key in Authorization header"
+  },
+  {
+    "type": "TEXT",
     "name": "customEventName",
     "displayName": "Custom Event Name",
     "simpleValueType": true
@@ -180,6 +187,9 @@ function genHeaders() {
   });
   
   headers['Content-Type'] = 'application/json; charset=utf-8';
+  if (data.apiKey) {
+    headers['Authorization'] = data.apiKey;
+  }
 
   return headers;
 }
