@@ -100,22 +100,10 @@ ___TEMPLATE_PARAMETERS___
     "valueHint": "Regex"
   },
   {
-    "type": "SIMPLE_TABLE",
-    "name": "excludePaths",
-    "displayName": "Exclude By Property Path",
-    "simpleTableColumns": [
-      {
-        "defaultValue": "",
-        "displayName": "Property Path",
-        "name": "path",
-        "type": "TEXT",
-        "valueValidators": [
-          {
-            "type": "NON_EMPTY"
-          }
-        ]
-      }
-    ]
+    "type": "TEXT",
+    "name": "includeRegex",
+    "displayName": "Include Regex",
+    "simpleValueType": true
   }
 ]
 
@@ -194,27 +182,25 @@ function genHeaders() {
   return headers;
 }
 
-function filterObjectProperties(obj, excludedKeys, excludeRegex, parentKey) {
-  excludedKeys = excludedKeys || [];
-  excludeRegex = excludeRegex || createRegex('(?!.*)');
+function filterObjectProperties(obj, excludeRegex, includeRegex, parentKey) {
   parentKey = parentKey || '';
-
   const filteredObj = {};
 
   for (let key in obj) {
     if (obj.hasOwnProperty(key)) {
       const fullPath = parentKey + key;
-      if (excludedKeys.indexOf(fullPath) === -1 && !testRegex(excludeRegex, fullPath)) {
-        const value = obj[key];
-        if (typeof value === 'object' && value !== null) {
-          // Recursively filter nested objects
-          const nestedFilteredObj = filterObjectProperties(value, excludedKeys, excludeRegex, fullPath + '.');
-          if (Object.keys(nestedFilteredObj).length > 0) {
-            filteredObj[key] = nestedFilteredObj;
-          }
-        } else {
-          filteredObj[key] = value;
+      const keep = !testRegex(excludeRegex, fullPath) || testRegex(includeRegex, fullPath);
+      const value = obj[key];
+
+      if (typeof value === 'object' && value !== null) {
+        // Recursively filter nested objects
+        const nestedFilteredObj = filterObjectProperties(value, excludeRegex, includeRegex, fullPath + '.');
+
+        if (Object.keys(nestedFilteredObj).length > 0 || keep) {
+          filteredObj[key] = nestedFilteredObj;
         }
+      } else if (keep) {
+        filteredObj[key] = value;
       }
     }
   }
@@ -232,7 +218,8 @@ if (testRegex(clientNamesRegex, clientName) &&
     eventName !== data.customEventName
    ) {
   const headers = genHeaders();
-  const excludeRegex = createRegex(data.excludeRegex);
+  const excludeRegex = createRegex(data.excludeRegex || '(?!.*)');
+  const includeRegex = createRegex(data.includeRegex || '(?!.*)');
   const filteredData = filterObjectProperties(eventData, data.excludePaths, excludeRegex);
   const customData = {
     "type": "GTM-S2S",
