@@ -38,12 +38,6 @@ ___TEMPLATE_PARAMETERS___
   },
   {
     "type": "TEXT",
-    "name": "customEventName",
-    "displayName": "Custom Event Name",
-    "simpleValueType": true
-  },
-  {
-    "type": "TEXT",
     "name": "clientNames",
     "displayName": "Client Names Accepted",
     "simpleValueType": true,
@@ -117,6 +111,12 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "valueHint": "Integer between 0 and 100"
+  },
+  {
+    "type": "TEXT",
+    "name": "customEventName",
+    "displayName": "Default Custom Event Name",
+    "simpleValueType": true
   }
 ]
 
@@ -140,7 +140,7 @@ const getContainerVersion = require('getContainerVersion');
 const getRequestHeader = require('getRequestHeader');
 const createRegex = require('createRegex');
 const testRegex = require('testRegex');
-const makeTableMap = require('makeTableMap');
+const makeInteger = require('makeInteger');
 
 const eventData = getAllEventData();
 const clientName = getClientName();
@@ -238,7 +238,7 @@ function fnv1aHash(str) {
   let hash = FNV_OFFSET_BASIS;
 
   for (let i = 0; i < str.length; i++) {
-    hash ^= str.charCodeAt(i);
+    hash ^= makeInteger(str[i]);
     hash = hash * FNV_PRIME;
   }
 
@@ -252,13 +252,28 @@ function canIPass(clientId, fraction) {
 function createRegexSafe(str) {
   return str ? createRegex(str) : null;
 }
+
+function prepareCustomEvent(eventName, result) {
+  const customEvent = deepCopy(eventData);
+  customEvent.event_name = data.customEventName;
+  customEvent.clientName = clientName;
+
+  customEvent.clientId = result.clientId;
+  customEvent.v = result.v;
+  customEvent.scorer_processing_time = result.scorer_processing_time;
+  customEvent.base_processing_time = result.base_processing_time;
+  
+  return customEvent;
+}
 /*************************
 *************************/
 
 const clientNamesRegex = createRegex(data.clientNames);
 const eventNamesRegex = createRegex(data.eventNames);
-const clientId = eventData.client_id || '';
+const clientId = eventData.clientId || '';
 const fraction = data.fraction || 100;
+
+log('Dot as integer', makeInteger('.'));
 
 if (testRegex(clientNamesRegex, clientName) &&
     testRegex(eventNamesRegex, eventName) &&
@@ -266,8 +281,8 @@ if (testRegex(clientNamesRegex, clientName) &&
     canIPass(clientId, fraction)
    ) {
   const headers = genHeaders();
-  const excludeRegex = createRegexSafe(data.excludeRegex);  // createRegex(data.excludeRegex || '^[$\\S\\s]*$');
-  const includeRegex = createRegexSafe(data.includeRegex);  // createRegex(data.includeRegex || '^[$\\S\\s]*$');
+  const excludeRegex = createRegexSafe(data.excludeRegex);
+  const includeRegex = createRegexSafe(data.includeRegex);
   const filteredData = filterObjectProperties(eventData, excludeRegex, includeRegex);
   log('Filtered data:', filteredData);
   const customData = {
@@ -292,17 +307,19 @@ if (testRegex(clientNamesRegex, clientName) &&
   }, body)
   .then((result) => {
     log('Requests result:', result);
+    const resultBody = JSON.parse(result.body);
+    log(resultBody);
 
-    let customEvent = deepCopy(eventData);
-    customEvent.event_name = data.customEventName;
-    customEvent.clientName = clientName;
-    
-    customEvent.clientId = result.clientId;
-    customEvent.v = result.v;
-    customEvent.scorer_processing_time = result.scorer_processing_time;
-    customEvent.base_processing_time = result.base_processing_time;
-    
-    runContainer(customEvent, () => returnResponse());
+    if (data.customEventName) {
+      log('Custom event name:', data.customEventName);
+      const customEvent = prepareCustomEvent(data.customEventName, resultBody);
+      runContainer(customEvent, () => returnResponse());
+    } else if (resultBody.hasOwnProperty('gtm_push')) {
+      log('GTM Push', resultBody.gtm_push);
+      const customEvent = prepareCustomEvent(resultBody.gtm_push.event, resultBody);
+      customEvent.gtmPushData = resultBody.gtm_push;
+      runContainer(customEvent, () => returnResponse());
+    }
     // Call data.gtmOnSuccess when the tag is finished.
     data.gtmOnSuccess();
   })
