@@ -48,7 +48,7 @@ ___TEMPLATE_PARAMETERS___
     "displayName": "Client Names Accepted",
     "simpleValueType": true,
     "canBeEmptyString": true,
-    "valueHint": "Regex",
+    "valueHint": "Re2 Regex",
     "help": "It uses Re2 https://github.com/google/re2/wiki/Syntax"
   },
   {
@@ -57,7 +57,7 @@ ___TEMPLATE_PARAMETERS___
     "displayName": "Event Names Accepted",
     "simpleValueType": true,
     "canBeEmptyString": true,
-    "valueHint": "Regex",
+    "valueHint": "Re2 Regex",
     "help": "It uses Re2 https://github.com/google/re2/wiki/Syntax"
   },
   {
@@ -95,15 +95,28 @@ ___TEMPLATE_PARAMETERS___
     "name": "excludeRegex",
     "displayName": "Exclude With Regex",
     "simpleValueType": true,
-    "canBeEmptyString": true,
     "help": "It uses Re2 https://github.com/google/re2/wiki/Syntax",
-    "valueHint": "Regex"
+    "valueHint": "Re2 Regex"
   },
   {
     "type": "TEXT",
     "name": "includeRegex",
     "displayName": "Include Regex",
-    "simpleValueType": true
+    "simpleValueType": true,
+    "help": "It uses Re2 https://github.com/google/re2/wiki/Syntax",
+    "valueHint": "Re2 Regex"
+  },
+  {
+    "type": "TEXT",
+    "name": "fraction",
+    "displayName": "Fraction of the traffic",
+    "simpleValueType": true,
+    "valueValidators": [
+      {
+        "type": "PERCENTAGE"
+      }
+    ],
+    "valueHint": "Integer between 0 and 100"
   }
 ]
 
@@ -182,6 +195,17 @@ function genHeaders() {
   return headers;
 }
 
+function keepOrNot(excludeRegex, includeRegex, testString) {
+  let keep = true;
+  if (excludeRegex && testRegex(excludeRegex, testString)) {
+    keep = false;
+  }
+  if (includeRegex && testRegex(includeRegex, testString)) {
+    keep = true;
+  }
+  return keep;
+}
+
 function filterObjectProperties(obj, excludeRegex, includeRegex, parentKey) {
   parentKey = parentKey || '';
   const filteredObj = {};
@@ -189,7 +213,7 @@ function filterObjectProperties(obj, excludeRegex, includeRegex, parentKey) {
   for (let key in obj) {
     if (obj.hasOwnProperty(key)) {
       const fullPath = parentKey + key;
-      const keep = !testRegex(excludeRegex, fullPath) || testRegex(includeRegex, fullPath);
+      const keep = keepOrNot(excludeRegex, includeRegex, fullPath);
       const value = obj[key];
 
       if (typeof value === 'object' && value !== null) {
@@ -207,20 +231,45 @@ function filterObjectProperties(obj, excludeRegex, includeRegex, parentKey) {
 
   return filteredObj;
 }
+
+const FNV_OFFSET_BASIS = 2166136261;
+const FNV_PRIME = 16777619;
+function fnv1aHash(str) {
+  let hash = FNV_OFFSET_BASIS;
+
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash = hash * FNV_PRIME;
+  }
+
+  return hash >>> 0; // Ensure unsigned 32-bit integer
+}
+
+function canIPass(clientId, fraction) {
+  return fnv1aHash(clientId) % 128 < fraction * 128 / 100;
+}
+
+function createRegexSafe(str) {
+  return str ? createRegex(str) : null;
+}
 /*************************
 *************************/
 
 const clientNamesRegex = createRegex(data.clientNames);
 const eventNamesRegex = createRegex(data.eventNames);
+const clientId = eventData.client_id || '';
+const fraction = data.fraction || 100;
 
 if (testRegex(clientNamesRegex, clientName) &&
     testRegex(eventNamesRegex, eventName) &&
-    eventName !== data.customEventName
+    eventName !== data.customEventName &&
+    canIPass(clientId, fraction)
    ) {
   const headers = genHeaders();
-  const excludeRegex = createRegex(data.excludeRegex || '(?!.*)');
-  const includeRegex = createRegex(data.includeRegex || '(?!.*)');
-  const filteredData = filterObjectProperties(eventData, data.excludePaths, excludeRegex);
+  const excludeRegex = createRegexSafe(data.excludeRegex);  // createRegex(data.excludeRegex || '^[$\\S\\s]*$');
+  const includeRegex = createRegexSafe(data.includeRegex);  // createRegex(data.includeRegex || '^[$\\S\\s]*$');
+  const filteredData = filterObjectProperties(eventData, excludeRegex, includeRegex);
+  log('Filtered data:', filteredData);
   const customData = {
     "type": "GTM-S2S",
     "container": getContainerVersion(),
