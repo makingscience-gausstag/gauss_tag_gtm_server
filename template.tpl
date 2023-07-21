@@ -199,11 +199,6 @@ function genHeaders() {
     headers[header] = getRequestHeader(header);
   });
 
-  headers['Content-Type'] = 'application/json; charset=utf-8';
-  if (data.apiKey) {
-    headers['Authorization'] = data.apiKey;
-  }
-
   return headers;
 }
 
@@ -302,7 +297,7 @@ if (testRegex(clientNamesRegex, clientName) &&
     eventName !== data.customEventName &&
     canIPass(clientId, fraction)
    ) {
-  const headers = genHeaders();
+  const headersInBody = genHeaders();
   const trackingId = formatTrackingId(data.trackingId);
   const excludeRegex = createRegexSafe(data.excludeRegex);
   const includeRegex = createRegexSafe(data.includeRegex);
@@ -315,11 +310,15 @@ if (testRegex(clientNamesRegex, clientName) &&
     "template": "Gauss Tag S2S Template",
     "client_name": clientName,
     "event_name": eventData.event_name,
-    "headers": headers,
+    "headers": headersInBody,
     "data": filteredData
   };
 
   const body = JSON.stringify(customData);
+  const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+  if (data.apiKey) {
+    headers['Authorization'] = data.apiKey;
+  }
 
   // Sends a POST request and nominates response based on the response to the POST
   // request.
