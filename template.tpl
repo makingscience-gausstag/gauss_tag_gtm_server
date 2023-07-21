@@ -1,4 +1,12 @@
-﻿___INFO___
+﻿___TERMS_OF_SERVICE___
+
+By creating or modifying this file you agree to Google Tag Manager's Community
+Template Gallery Developer Terms of Service available at
+https://developers.google.com/tag-manager/gallery-tos (or such other URL as
+Google may provide), as modified from time to time.
+
+
+___INFO___
 
 {
   "type": "TAG",
@@ -95,24 +103,32 @@ ___TEMPLATE_PARAMETERS___
     "valueHint": "Re2 Regex"
   },
   {
-    "type": "TEXT",
-    "name": "fraction",
-    "displayName": "Traffic Fraction (1-100)",
-    "simpleValueType": true,
-    "valueValidators": [
+    "type": "GROUP",
+    "name": "forTesting",
+    "displayName": "For testing",
+    "groupStyle": "ZIPPY_CLOSED",
+    "subParams": [
       {
-        "type": "PERCENTAGE"
+        "type": "TEXT",
+        "name": "fraction",
+        "displayName": "Traffic Fraction (1-100)",
+        "simpleValueType": true,
+        "valueValidators": [
+          {
+            "type": "PERCENTAGE"
+          }
+        ],
+        "valueHint": "Integer between 0 and 100",
+        "help": "This field is to be used during roll-out to process a fraction of all the traffic, based on client_id."
+      },
+      {
+        "type": "TEXT",
+        "name": "customEventName",
+        "displayName": "Default Custom Event Name",
+        "simpleValueType": true,
+        "help": "(Testing Feature) Trigger this event name upon server response, if it does not contain an event to trigger"
       }
-    ],
-    "valueHint": "Integer between 0 and 100",
-    "help": "This field is to be used during roll-out to process a fraction of all the traffic, based on client_id."
-  },
-  {
-    "type": "TEXT",
-    "name": "customEventName",
-    "displayName": "Default Custom Event Name",
-    "simpleValueType": true,
-    "help": "(Testing Feature) Trigger this event name upon server response, if it does not contain an event to trigger"
+    ]
   }
 ]
 
@@ -402,7 +418,7 @@ ___SERVER_PERMISSIONS___
           "key": "environments",
           "value": {
             "type": 1,
-            "string": "debug"
+            "string": "all"
           }
         }
       ]
