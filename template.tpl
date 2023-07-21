@@ -178,7 +178,7 @@ function constructPath(obj) {
     }
     return accumulator;
   }, []);
-  
+
   return keyValues.join('&');
 }
 
@@ -188,7 +188,7 @@ function deepCopy(obj) {
 
 function genHeaders() {
   let headers = {};
-  
+
   if (data.headers) {
   data.headers.forEach((header) => {
     headers[header.name] = getRequestHeader(header.name);
@@ -198,7 +198,7 @@ function genHeaders() {
   MANDATORY_HEADERS.forEach((header) => {
     headers[header] = getRequestHeader(header);
   });
-  
+
   headers['Content-Type'] = 'application/json; charset=utf-8';
   if (data.apiKey) {
     headers['Authorization'] = data.apiKey;
@@ -274,8 +274,20 @@ function prepareCustomEvent(eventName, result) {
   customEvent.v = result.v;
   customEvent.scorer_processing_time = result.scorer_processing_time;
   customEvent.base_processing_time = result.base_processing_time;
-  
+
   return customEvent;
+}
+
+function formatTrackingId(trackingId) {
+  // If requestUrl does not start with https:// prepend it
+  if (trackingId.indexOf('https://') !== 0) {
+    trackingId = 'https://' + trackingId;
+  }
+  // if requestUrl does not have path part
+  if (trackingId.lastIndexOf('/') === 7) {
+    trackingId += '/data';
+  }
+  return trackingId;
 }
 /*************************
 *************************/
@@ -285,18 +297,18 @@ const eventNamesRegex = createRegex(data.eventNames);
 const clientId = eventData.clientId || '';
 const fraction = data.fraction || 100;
 
-log('Dot as integer', makeInteger('.'));
-
 if (testRegex(clientNamesRegex, clientName) &&
     testRegex(eventNamesRegex, eventName) &&
     eventName !== data.customEventName &&
     canIPass(clientId, fraction)
    ) {
   const headers = genHeaders();
+  const trackingId = formatTrackingId(data.trackingId);
   const excludeRegex = createRegexSafe(data.excludeRegex);
   const includeRegex = createRegexSafe(data.includeRegex);
   const filteredData = filterObjectProperties(eventData, excludeRegex, includeRegex);
   log('Filtered data:', filteredData);
+
   const customData = {
     "type": "GTM-S2S",
     "container": getContainerVersion(),
@@ -308,10 +320,10 @@ if (testRegex(clientNamesRegex, clientName) &&
   };
 
   const body = JSON.stringify(customData);
-  
+
   // Sends a POST request and nominates response based on the response to the POST
   // request.
-  sendHttpRequest(data.trackingId,
+  sendHttpRequest(trackingId,
                   {
     method: 'POST',
     timeout: 5000,
