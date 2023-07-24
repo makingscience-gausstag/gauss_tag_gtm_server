@@ -127,6 +127,12 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Default Custom Event Name",
         "simpleValueType": true,
         "help": "(Testing Feature) Trigger this event name upon server response, if it does not contain an event to trigger"
+      },
+      {
+        "type": "CHECKBOX",
+        "name": "logInProduction",
+        "checkboxText": "Log In Production",
+        "simpleValueType": true
       }
     ]
   }
@@ -135,7 +141,7 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_SERVER___
 
-const log = require('logToConsole');
+const logToConsole = require('logToConsole');
 const getAllEventData = require('getAllEventData');
 const JSON = require('JSON');
 const Object = require('Object');
@@ -153,6 +159,21 @@ const getRequestHeader = require('getRequestHeader');
 const createRegex = require('createRegex');
 const testRegex = require('testRegex');
 const makeInteger = require('makeInteger');
+const getTimestampMillis = require('getTimestampMillis');
+
+/*************************
+  Logging setup.
+*************************/
+const containerData = getContainerVersion();
+
+function log() {
+  if (data.logInProduction || containerData.debugMode || containerData.previewMode) {
+    let millis = "[" + getTimestampMillis() + "]";
+    logToConsole(millis, "[Gauss Tag S2S Template]", arguments);
+  }
+}
+/*************************
+*************************/
 
 const eventData = getAllEventData();
 const clientName = getClientName();
@@ -306,7 +327,7 @@ if (testRegex(clientNamesRegex, clientName) &&
 
   const customData = {
     "type": "GTM-S2S",
-    "container": getContainerVersion(),
+    "container": containerData,
     "template": "Gauss Tag S2S Template",
     "client_name": clientName,
     "event_name": eventData.event_name,
