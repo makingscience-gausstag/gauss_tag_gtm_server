@@ -141,6 +141,8 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_SERVER___
 
+const VERSION = '0.0.1-11-g4421d9e';
+
 const logToConsole = require('logToConsole');
 const getAllEventData = require('getAllEventData');
 const JSON = require('JSON');
@@ -328,7 +330,7 @@ if (testRegex(clientNamesRegex, clientName) &&
   const customData = {
     "type": "GTM-S2S",
     "container": containerData,
-    "template": "Gauss Tag S2S Template",
+    "template_version": VERSION,
     "client_name": clientName,
     "event_name": eventData.event_name,
     "headers": headersInBody,
