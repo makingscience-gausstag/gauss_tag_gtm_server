@@ -1,5 +1,5 @@
 homepage: "https://www.makingscience.com"
 documentation: "https://github.com/makingscience-gausstag/gauss_tag_gtm_server"
 versions:
-  - sha: 6ebda383c7d9575dbf3c3671295d1d6ca5801db2
+  - sha: c2fbbfeec8488e261a8b67d766677ecbb9390542
     changeNotes: Initial release.
