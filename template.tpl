@@ -1,19 +1,11 @@
-﻿___TERMS_OF_SERVICE___
-
-By creating or modifying this file you agree to Google Tag Manager's Community
-Template Gallery Developer Terms of Service available at
-https://developers.google.com/tag-manager/gallery-tos (or such other URL as
-Google may provide), as modified from time to time.
-
-
-___INFO___
+﻿___INFO___
 
 {
   "type": "TAG",
   "id": "cvt_temp_public_id",
   "version": 1,
   "securityGroups": [],
-  "displayName": "Gauss Tag S2S Template",
+  "displayName": "NEW Gauss Tag S2S Template",
   "brand": {
     "id": "brand_dummy",
     "displayName": "Making Science",
@@ -31,15 +23,8 @@ ___TEMPLATE_PARAMETERS___
 [
   {
     "type": "TEXT",
-    "name": "apiKey",
-    "displayName": "API Key",
-    "simpleValueType": true,
-    "help": "Secret API Key that must be synchronised with the server\u0027s."
-  },
-  {
-    "type": "TEXT",
     "name": "trackingId",
-    "displayName": "Tracking Id",
+    "displayName": "Customer Id",
     "simpleValueType": true,
     "valueValidators": [
       {
@@ -51,6 +36,13 @@ ___TEMPLATE_PARAMETERS___
   },
   {
     "type": "TEXT",
+    "name": "apiKey",
+    "displayName": "API Key",
+    "simpleValueType": true,
+    "help": "Secret API Key that must be synchronised with the server\u0027s."
+  },
+  {
+    "type": "TEXT",
     "name": "clientNames",
     "displayName": "GTM server Client Names",
     "simpleValueType": true,
@@ -59,18 +51,9 @@ ___TEMPLATE_PARAMETERS___
     "help": "List of GTM server Client Names to listen to, in regular expression Re2 format -  https://github.com/google/re2/wiki/Syntax"
   },
   {
-    "type": "TEXT",
-    "name": "eventNames",
-    "displayName": "List of GTM Event Names Accepted",
-    "simpleValueType": true,
-    "canBeEmptyString": true,
-    "valueHint": "Re2 Regex",
-    "help": "Event Names Accepted, as a Re2 regular expression (https://github.com/google/re2/wiki/Syntax). Empty means accept all"
-  },
-  {
     "type": "SIMPLE_TABLE",
     "name": "headers",
-    "displayName": "HTTP Request Headers",
+    "displayName": "HTTP Request Header Capture",
     "simpleTableColumns": [
       {
         "defaultValue": "",
@@ -82,30 +65,66 @@ ___TEMPLATE_PARAMETERS___
     "help": "The list of HTTP headers to capture and send upstream"
   },
   {
+    "type": "GROUP",
+    "name": "eventFiltering",
+    "displayName": "Event Name Filtering",
+    "groupStyle": "ZIPPY_CLOSED",
+    "subParams": [
+      {
+        "type": "TEXT",
+        "name": "excludeEventNames",
+        "displayName": "Exclude Event Names (Blacklist)",
+        "simpleValueType": true,
+        "valueHint": "Re2 Regex",
+        "help": "Event Name blacklist in regex format. To configure more than one pattern concatenate with |. Example: ^scroll|^user_engagment$",
+        "canBeEmptyString": true
+      },
+      {
+        "type": "TEXT",
+        "name": "includeEventNames",
+        "displayName": "Include Event Names (Whitelist)",
+        "simpleValueType": true,
+        "valueHint": "Re2 Regex",
+        "help": "Event Name Whitelist in regex format. To configure more than one pattern concatenate with |. Example: ^purchase$|^add_to_cart$",
+        "canBeEmptyString": true
+      }
+    ]
+  },
+  {
+    "type": "GROUP",
+    "name": "dataFiltering",
+    "displayName": "Event Data Filtering",
+    "groupStyle": "ZIPPY_CLOSED",
+    "subParams": [
+      {
+        "type": "TEXT",
+        "name": "excludeRegex",
+        "displayName": "Exclude Attributes (Blacklist)",
+        "simpleValueType": true,
+        "valueHint": "Re2 Regex",
+        "help": "Event data attributes to exclude, as a regular expression, applied to the data attribute JSON path (for example: a.b)",
+        "canBeEmptyString": true
+      },
+      {
+        "type": "TEXT",
+        "name": "includeRegex",
+        "displayName": "Include Attributes (Whitelist)",
+        "simpleValueType": true,
+        "valueHint": "Re2 Regex",
+        "help": "Event data attributes to include, as a regular expression, applied to the data attribute JSON path (for example: a.b)",
+        "canBeEmptyString": true
+      }
+    ]
+  },
+  {
     "type": "LABEL",
     "name": "excludeLabel",
     "displayName": "Filter Event Properties"
   },
   {
-    "type": "TEXT",
-    "name": "excludeRegex",
-    "displayName": "Event Data Exclude Regex",
-    "simpleValueType": true,
-    "valueHint": "Re2 Regex",
-    "help": "Event Data Properties to exclude in regular expression Re2 format - https://github.com/google/re2/wiki/Syntax \nIf empty, nothing is excluded"
-  },
-  {
-    "type": "TEXT",
-    "name": "includeRegex",
-    "displayName": "Include Regex",
-    "simpleValueType": true,
-    "help": "This field is used to configure exceptions to what was rejected by \"Event Data Exclude Regex\".",
-    "valueHint": "Re2 Regex"
-  },
-  {
     "type": "GROUP",
     "name": "forTesting",
-    "displayName": "For testing",
+    "displayName": "Testing",
     "groupStyle": "ZIPPY_CLOSED",
     "subParams": [
       {
@@ -141,7 +160,7 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_SERVER___
 
-const VERSION = '0.0.1-11-g4421d9e';
+const VERSION = '7dca13f';
 
 const logToConsole = require('logToConsole');
 const getAllEventData = require('getAllEventData');
@@ -176,18 +195,6 @@ function log() {
 }
 /*************************
 *************************/
-
-const eventData = getAllEventData();
-const clientName = getClientName();
-const eventName = eventData.event_name || '';
-
-log('Logging from the trigger template');
-log('Data:', data);
-log('Event Data:', eventData);
-
-const MANDATORY_HEADERS = ['Origin', 'Referrer', 'Content-Type',
-                            'X-Appengine-City', 'X-Appengine-Region',
-                            'X-Appengine-Country', 'X-Appengine-CityLatLong'];
 
 /*************************
   Helper functions.
@@ -310,73 +317,111 @@ function formatTrackingId(trackingId) {
 /*************************
 *************************/
 
+// headers that are always captured
+// we include appengine location headers:
+//  https://cloud.google.com/appengine/docs/standard/reference/request-headers?tab=python#app_engine-specific_headers
+//  but remember that non-AppEngine deployments like in CloudRun will have custom headers
+const MANDATORY_HEADERS = [
+  'X-Appengine-City', 
+  'X-Appengine-Region', 
+  'X-Appengine-Country', 
+  'X-Appengine-CityLatLong'
+];
+
+const eventData = getAllEventData();
+const clientName = getClientName();
+const eventName = eventData.event_name || '';
+
+log('start', data);
+log('event_data', JSON.stringify(eventData));
+
 const clientNamesRegex = createRegex(data.clientNames);
-const eventNamesRegex = createRegex(data.eventNames);
+const includeEventNamesRegex = createRegex(data.includeEventNames);
+const excludeEventNamesRegex = createRegex(data.excludeEventNames);
 const clientId = eventData.clientId || '';
 const fraction = data.fraction || 100;
 
-if (testRegex(clientNamesRegex, clientName) &&
-    testRegex(eventNamesRegex, eventName) &&
-    eventName !== data.customEventName &&
-    canIPass(clientId, fraction)
-   ) {
-  const headersInBody = genHeaders();
-  const trackingId = formatTrackingId(data.trackingId);
-  const excludeRegex = createRegexSafe(data.excludeRegex);
-  const includeRegex = createRegexSafe(data.includeRegex);
-  const filteredData = filterObjectProperties(eventData, excludeRegex, includeRegex);
-  log('Filtered data:', filteredData);
+// specify the specific cause for droping the event to facilitate troubleshooting
 
-  const customData = {
-    "type": "GTM-S2S",
-    "container": containerData,
-    "template_version": VERSION,
-    "client_name": clientName,
-    "event_name": eventData.event_name,
-    "headers": headersInBody,
-    "data": filteredData
-  };
-
-  const body = JSON.stringify(customData);
-  const headers = { 'Content-Type': 'application/json; charset=utf-8' };
-  if (data.apiKey) {
-    headers['Authorization'] = data.apiKey;
-  }
-
-  // Sends a POST request and nominates response based on the response to the POST
-  // request.
-  sendHttpRequest(trackingId,
-                  {
-    method: 'POST',
-    timeout: 5000,
-    headers: headers,
-  }, body)
-  .then((result) => {
-    log('Requests result:', result);
-    const resultBody = JSON.parse(result.body);
-    log(resultBody);
-
-    if (data.customEventName) {
-      log('Custom event name:', data.customEventName);
-      const customEvent = prepareCustomEvent(data.customEventName, resultBody);
-      runContainer(customEvent, () => returnResponse());
-    } else if (resultBody.hasOwnProperty('gtm_push')) {
-      log('GTM Push', resultBody.gtm_push);
-      const customEvent = prepareCustomEvent(resultBody.gtm_push.event, resultBody);
-      customEvent.gtmPushData = resultBody.gtm_push;
-      runContainer(customEvent, () => returnResponse());
-    }
-    // Call data.gtmOnSuccess when the tag is finished.
-    data.gtmOnSuccess();
-  })
-  .catch((error) => {
-    log('Encountered error:', error);
-    data.gtmOnFailure();
-  });
-} else {
-  log("Event name matched the exclusion, so doing nothing.");
+if (!canIPass(clientId, fraction)) {
+  log('DROPPED - trimming', clientId, fraction);
   data.gtmOnSuccess();
+  return;
 }
+
+if (clientNamesRegex && !testRegex(clientNamesRegex, clientName) ) {
+  log('DROPPED-clientName', clientName, clientNamesRegex);
+  data.gtmOnSuccess();
+  return;
+}
+
+if (!keepOrNot(excludeEventNamesRegex, includeEventNamesRegex, eventName)) {
+  log('DROPPED-eventName', eventName, excludeEventNamesRegex, includeEventNamesRegex);
+  data.gtmOnSuccess();
+  return;
+}
+
+if (eventName == data.customEventName) {
+  log('DROPPED-customEventName', eventName, data.customEventName);
+  data.gtmOnSuccess();
+  return;
+}
+
+// the convention is that the triggered events must start with gauss, so we enforce blocking
+if (testRegex(createRegex('^gauss', 'i'), eventName)) {
+  log('DROPPED-gauss', eventName);
+  data.gtmOnSuccess();
+  return;
+}
+
+const headersInBody = genHeaders();
+const trackingId = formatTrackingId(data.trackingId);
+const excludeRegex = createRegexSafe(data.excludeRegex);
+const includeRegex = createRegexSafe(data.includeRegex);
+const filteredData = filterObjectProperties(eventData, excludeRegex, includeRegex);
+log('filtered_data:', JSON.stringify(filteredData));
+
+const customData = {
+  "type": "GTM-S2S",
+  "container": containerData,
+  "template_version": VERSION,
+  "client_name": clientName,
+  "headers": headersInBody,
+  "event_name": eventData.event_name,
+  "data": filteredData
+};
+
+const body = JSON.stringify(customData);
+const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+if (data.apiKey) {
+  headers['Authorization'] = data.apiKey;
+}
+
+// Sends a POST request and nominates response based on the response to the POST
+// request.
+sendHttpRequest(trackingId, { method: 'POST', timeout: 5000, headers: headers}, body)
+.then((result) => {
+  log('request_result:', result);
+  const resultBody = JSON.parse(result.body);
+  log(resultBody);
+
+  if (data.customEventName) {
+    log('Custom event name:', data.customEventName);
+    const customEvent = prepareCustomEvent(data.customEventName, resultBody);
+    runContainer(customEvent, () => returnResponse());
+  } else if (resultBody.hasOwnProperty('gtm_push')) {
+    log('GTM Push', resultBody.gtm_push);
+    const customEvent = prepareCustomEvent(resultBody.gtm_push.event, resultBody);
+    customEvent.gtmPushData = resultBody.gtm_push;
+    runContainer(customEvent, () => returnResponse());
+  }
+  // Call data.gtmOnSuccess when the tag is finished.
+  data.gtmOnSuccess();
+})
+.catch((error) => {
+  log('Encountered error:', error);
+  data.gtmOnFailure();
+});
 
 
 ___SERVER_PERMISSIONS___
