@@ -168,7 +168,7 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_SERVER___
 
-const VERSION = '1.0.0-0-g1564ae7';
+const VERSION = '1.0.1-0-gb81efad';
 
 const logToConsole = require('logToConsole');
 const getAllEventData = require('getAllEventData');
