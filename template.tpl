@@ -13,7 +13,7 @@ ___INFO___
   "id": "cvt_temp_public_id",
   "version": 1,
   "securityGroups": [],
-  "displayName": "NEW Gauss Tag S2S Template",
+  "displayName": "Gauss Tag S2S Template",
   "brand": {
     "id": "brand_dummy",
     "displayName": "Making Science",
@@ -400,7 +400,8 @@ const customData = {
 };
 
 const body = JSON.stringify(customData);
-const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+const user_agent = filteredData.user_agent ? filteredData.user_agent : ( 'gauss_tag_gtm_server/' + VERSION );
+const headers = { 'Content-Type': 'application/json; charset=utf-8', 'User-Agent': user_agent };
 if (data.apiKey) {
   headers['Authorization'] = data.apiKey;
 }
